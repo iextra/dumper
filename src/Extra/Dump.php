@@ -26,7 +26,7 @@ class Dump
      */
     private static $defaultExtension = '.txt';
 
-    public static $jsCssInited = false;
+    private static $jsCssInited = false;
 
 
     // Functions
@@ -57,18 +57,18 @@ class Dump
      * @param string || null $label
      */
     public static function toFile($data, $fileName = null, $label = null){
-        $time = '[' . date('d.m.Y H:i:s') . ']';
-        $arTrace = self::getTrace();
-        $inFile = preg_split('/called at /', end($arTrace))[1];
+        $time = date('d.m.Y H:i:s');
+        $arTrace = self::getTrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $inFile = self::getCalledFile($arTrace);
 
         ob_start();
-        echo '================================' . PHP_EOL;
+        echo '======================================================================================' . PHP_EOL;
         echo 'Time: ' .  $time . PHP_EOL;
         echo 'File: ' . $inFile;
         if($label !== null){
             echo PHP_EOL . 'Label: ' . $label ;
         }
-        echo PHP_EOL . '================================' . PHP_EOL;
+        echo PHP_EOL . '======================================================================================' . PHP_EOL;
         self::dataPrint($data);
         echo PHP_EOL . PHP_EOL . PHP_EOL;
         $out = ob_get_contents();
@@ -82,8 +82,8 @@ class Dump
     {
         self::initJsCss();
 
-        $arTrace = self::getTrace();
-        $inFile = preg_split('/called at /', end($arTrace))[1] ?: '';
+        $arTrace = self::getTrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $inFile = self::getCalledFile($arTrace);
         ?>
         <script>
             document.eDump.data.push({
@@ -105,17 +105,19 @@ class Dump
     /**
      * Get call stack
      *
+     * @param int $options (DEBUG_BACKTRACE_IGNORE_ARGS - exclude the "args" key to reduce memory consumption)
+     * @param int $limit
      * @return array
      */
-    public static function getTrace()
+    public static function getTrace($options = 0, $limit = 0)
     {
         ob_start();
-        debug_print_backtrace();
+        debug_print_backtrace($options, $limit);
         $trace = ob_get_contents();
         ob_end_clean();
 
         $arTrace = explode("\n", $trace);
-        array_pop($arTrace); // Remove empty from stack
+        array_pop($arTrace); // Remove last empty from stack
 
         return $arTrace;
     }
@@ -339,7 +341,7 @@ class Dump
                 }
 
                 function dump(data) {
-                    var container = createNode('div', clDump + ' open');
+                    var container = createNode('div', clDump + ' exOpen');
                     container.id = 'dData_' + data.index;
 
                     container.appendChild(createNode('span', clClose, '✕'));
@@ -386,11 +388,11 @@ class Dump
                 function trigger(element, parent) {
                     if (element.style.display === 'block') {
                         element.style.display = 'none';
-                        parent.classList.remove('open');
+                        parent.classList.remove('exOpen');
                     }
                     else {
                         element.style.display = 'block';
-                        parent.classList.add('open');
+                        parent.classList.add('exOpen');
                     }
                 }
 
@@ -407,11 +409,11 @@ class Dump
                     var label = createNode('i', undefined, item.label);
                     container.appendChild(label);
 
-                    var btnOpen = createNode('div', 'dMenuBtn open', '🔎'); // &#128270;
+                    var btnOpen = createNode('div', 'dMenuBtn exOpen', '🔎'); // &#128270;
                     btnOpen.setAttribute('data-index', i);
                     container.appendChild(btnOpen);
 
-                    var btnClose = createNode('div', 'dMenuBtn close', '✕');
+                    var btnClose = createNode('div', 'dMenuBtn exClose', '✕');
                     container.appendChild(btnClose);
 
                     li.appendChild(container);
@@ -438,7 +440,7 @@ class Dump
                     }
 
                     // Events
-                    var openButtons = document.querySelectorAll('.dMenuBtn.open');
+                    var openButtons = document.querySelectorAll('.dMenuBtn.exOpen');
                     for (i = 0; i < openButtons.length; ++i) {
                         openButtons[i].onclick = function () {
                             var index = this.getAttribute('data-index');
@@ -446,7 +448,7 @@ class Dump
                             var element = document.getElementById(id);
 
                             if(element !== null){
-                                element.classList.add('open');
+                                element.classList.add('exOpen');
                             }
                             else if(id !== undefined && id.length > 0) {
                                 dump({
@@ -460,7 +462,7 @@ class Dump
                         }
                     }
 
-                    var closeButtons = document.querySelectorAll('.dMenuBtn.close');
+                    var closeButtons = document.querySelectorAll('.dMenuBtn.exClose');
                     for (i = 0; i < closeButtons.length; ++i) {
                         closeButtons[i].onclick = function () {
                             this.parentNode.remove();
@@ -478,7 +480,7 @@ class Dump
                     var items = document.querySelectorAll('.dClose');
                     for (i = 0; i < items.length; ++i) {
                         items[i].onclick = function () {
-                            this.parentElement.classList.remove('open');
+                            this.parentElement.classList.remove('exOpen');
                         }
                     }
                 }
@@ -511,12 +513,12 @@ class Dump
             .dProp{color: #f8263e; padding-right: 2px;}
             .dCnt{color: #a0a0a0;}
             .dPl::after{color: #5be767;cursor: pointer;content: '+';}
-            .dPl.open::after{content: '-';}
+            .dPl.exPpen::after{content: '-';}
             .dPrnt .dCld{display: none; margin-left: 25px;}
             .dKey{color: #e5da67;}
 
             .dBox{display: none;}
-            .dBox.open{
+            .dBox.exOpen{
                 display: block;
                 width: 600px;
                 background-color: #272822;
@@ -563,7 +565,7 @@ class Dump
                 content: attr(info);
                 border: 1px bisque solid;
                 background-color: blanchedalmond;
-                padding: 5px;
+                padding: 2.5px 5px;
                 position: fixed;
                 color: #222;
                 white-space:pre-wrap;
@@ -581,7 +583,7 @@ class Dump
                 padding: 1px;
             }
             .dMenu span {margin-left: 5px;}
-            .dMenuBtn.open{padding-top: 2px;}
+            .dMenuBtn.exOpen{padding-top: 1px;}
             .dMenuBtn.delete{padding-top: 1px;}
             .dMenu i {padding-right: 15px;}
             @-moz-document url-prefix(){ .dMenu span {margin-left: 5px;} }
@@ -638,6 +640,29 @@ class Dump
 
         return $result;
     }
+
+    /**
+     * Returns the file and the line where the debug function was called from
+     *
+     * @param $arTrace
+     * $return string
+     */
+    private static function getCalledFile($arTrace)
+    {
+        $arr = [];
+        foreach($arTrace as $trace){
+            if(strpos($trace, __CLASS__) !== false){
+                $arr[] = $trace;
+            }
+            else{
+                break;
+            }
+        }
+
+        $path = preg_split('/called at /', end($arr))[1] ?: '';
+        return substr($path, 1, -1);
+    }
+
 }
 
 /**
