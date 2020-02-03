@@ -2,11 +2,11 @@
 *Class for easy debugging*
 
 
-## Installation
+# Installation *(composer)*
 
 1. Write a command to the console: 
     ```
-    composer reqiure iextra/dumper
+    composer require iextra/dumper
     ```
 2. Connect autoloader in your project: 
     ```php 
@@ -14,8 +14,17 @@
     require 'vendor/autoload.php'; 
     ```
 
+# Alternative installation
 
-## Usage
+1. [Download](https://github.com/iextra/dumper/archive/master.zip) archive from repository [https://github.com/iextra/dumper](https://github.com/iextra/dumper) and unzip
+2. Copy file **Dump.php** in your project.
+3. Connect file in your project: 
+    ```php 
+    <?php
+    require '/Dump.php'; 
+    ```
+
+# Usage
 
 ### Dump to Popup
 
