@@ -42,6 +42,9 @@ class Dump
             $data = (array)$data;
         }
 
+        // If the data has a NAN, then json_encode returns an error
+        $data = unserialize(str_replace(['NAN;'],'0;', serialize($data)));
+
         echo '<script type="text/javascript">
         console.log(' . (empty($label) ? '' : '\'' . $label . '\',') . json_encode($data) . ');
         </script>';
@@ -549,7 +552,7 @@ class Dump
             .dProp{color: #f8263e; padding-right: 2px;}
             .dCnt{color: #a0a0a0;}
             .dPl::after{color: #5be767;cursor: pointer;content: '+';}
-            .dPl.exPpen::after{content: '-';}
+            .dPl.exOpen::after{content: '-';}
             .dPrnt .dCld{display: none; margin-left: 25px;}
             .dKey{color: #e5da67;}
 
@@ -611,7 +614,7 @@ class Dump
                 z-index: 999998;
                 border: 1px solid #000000;
                 background-color: #272822;
-                color: #f8263e;;
+                color: #f8263e;
                 text-align: left;
                 left: 8px;
                 font: 12px/1.17em Consolas, Verdana, sans-serif;
@@ -720,6 +723,7 @@ class JsonData
 
     private static function prepareData($data)
     {
+        //var_dump($data);die();
         $type = self::getType($data);
         $result = self::createType($type);
 
@@ -742,12 +746,16 @@ class JsonData
                 if($valueType === 'object' || $valueType === 'array'){
                     $value = self::prepareData($value);
                 }
+                else if($valueType === 'double'){
+                    $value = is_nan($value) ? 'NaN' : $value;
+                }
+
 
                 if($type === 'object'){
                     $key = self::prepareClassKey($key);
                     $result->$key = $value;
                 }
-                elseif($type === 'array'){
+                else if($type === 'array'){
                     $result[$key] = $value;
                 }
             });
