@@ -10,9 +10,9 @@
  *
  * This class has an alias for quickly calling the dump function.
  * Examples:
- *  Extra::p($data) - debug to popup
- *  Extra::c($data) - debug to console
- *  Extra::f($data) - debug to file
+ *  Extra\Dump::p($data) - debug to popup
+ *  Extra\Dump::c($data) - debug to console
+ *  Extra\Dump::f($data) - debug to file
  */
 
 namespace Extra;
@@ -78,18 +78,21 @@ class Dump
     }
 
 
+    /**
+     * @param string $data
+     * @param string || null $label
+     */
     public static function toPopup($data = '', $label = null)
     {
         self::initJsCss();
 
         $arTrace = self::getTrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-        $inFile = self::getCalledFile($arTrace);
         ?>
         <script>
             document.eDump.data.push({
-                label: '<?=$label?>',
-                data: <?=JsonData::prepare($data)?>,
-                file: '<?=substr($inFile, 1 , -1)?>'
+                label: '<?= $label ?>',
+                data: <?= JsonData::prepare($data) ?>,
+                file: '<?= self::getCalledFile($arTrace) ?>'
             });
         </script>
         <?
@@ -124,21 +127,45 @@ class Dump
 
     // Function aliases for fast call
 
+    /**
+     * Short call function toPopup()
+     *
+     * @param string $data
+     * @param string || null $label
+     */
     public static function p($data = '', $label = null)
     {
         self::toPopup($data, $label);
     }
 
+    /**
+     * Short call function toFile()
+     *
+     * @param $data
+     * @param string || null $fileName
+     * @param string || null $label
+     */
     public static function f($data, $fileName = null, $label = null)
     {
         self::toFile($data, $fileName, $label);
     }
 
+    /**
+     * Short call function dump()
+     *
+     * @param $data
+     */
     public static function d($data)
     {
         self::dump($data);
     }
 
+    /**
+     * Short call function toConsole()
+     *
+     * @param $data
+     * @param string $label
+     */
     public static function c($data, $label = '')
     {
         self::toConsole($data, $label);
@@ -158,6 +185,9 @@ class Dump
 
     //html
 
+    /**
+     * Render Js and Css
+     */
     private static function initJsCss()
     {
         if(self::$jsCssInited === false){
@@ -168,6 +198,9 @@ class Dump
         }
     }
 
+    /**
+     * Render JS
+     */
     private static function initJs()
     {
         ?>
@@ -493,6 +526,9 @@ class Dump
         <?
     }
 
+    /**
+     * Render Css
+     */
     private static function initCss()
     {
         ?>
