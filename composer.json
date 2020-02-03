@@ -1,0 +1,26 @@
+{
+    "name": "iextra/dumper",
+    "description": "Class for easy debugging",
+    "keywords": ["dumper", "debug"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "iextra",
+            "email": "iextra.denis@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Extra\\": "src/Extra/"
+        }
+    },
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
