@@ -17,11 +17,10 @@
 # Alternative installation
 
 1. [Download](https://github.com/iextra/dumper/archive/master.zip) archive from repository [https://github.com/iextra/dumper](https://github.com/iextra/dumper) and unzip
-2. Copy file **Dump.php** in your project.
-3. Connect file in your project: 
+2. Copy the **Dump.php** file into your project and include it:
     ```php 
     <?php
-    require '/Dump.php'; 
+    require $_SERVER['DOCUMENT_ROOT'] . '/Dump.php'; 
     ```
 
 # Usage
