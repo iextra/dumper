@@ -536,7 +536,16 @@ class Dump
     {
         ?>
         <style>
-            #dContainer{position: fixed; z-index: 999999; padding: 0; top: 0; left: 0; margin: 8px;}
+            #dContainer{
+                position: fixed;
+                z-index: 999999;
+                padding: 0;
+                top: 0;
+                left: 0;
+                margin: 8px;
+                overflow: auto;
+                height: calc(100vh - 16px);
+            }
             .dBox{
                 font: 12px/1.17em Consolas, Verdana, sans-serif;
                 background-color: #272822;
@@ -795,7 +804,7 @@ class JsonData
             $prop = str_replace($className, self::$privateLabel, $prop);
             $prop = str_replace("\0", '', $prop);
         }
-        else if($prop[1] === '*'){
+        else if(!empty($prop[1]) && $prop[1] === '*'){
             $prop = str_replace('*', self::$protectedLabel, $prop);
             $prop = str_replace("\0", '', $prop);
         }
