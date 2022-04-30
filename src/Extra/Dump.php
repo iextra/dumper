@@ -28,6 +28,8 @@ class Dump
 
     private static $jsCssInited = false;
 
+    private static $exStartTime = null;
+    private static $exStartMemory = null;
 
     // Functions
 
@@ -98,9 +100,13 @@ class Dump
                 file: '<?= self::getCalledFile($arTrace) ?>'
             });
         </script>
-        <?
+        <?php
     }
 
+    /**
+     * @param $data
+     * @return void
+     */
     public static function dump($data)
     {
         echo '<pre>';
@@ -183,6 +189,47 @@ class Dump
     {
         self::dump($data);
         die();
+    }
+
+    /**
+     * @param $timePrecision
+     * @param $memoryPrecision
+     * @return array
+     */
+    public static function test($timePrecision = 3, $memoryPrecision = 3): array
+    {
+        $resultMemory = null;
+        $resultTime = null;
+        static $result = [];
+
+        if(self::$exStartMemory !== null){
+            $usedMemory = memory_get_usage(false) - self::$exStartMemory;
+            $resultMemory = round($usedMemory / 1024 / 1024, $memoryPrecision) . ' Mb';
+        }
+
+        if(self::$exStartTime !== null){
+            $timeNow = microtime(true) - self::$exStartTime;
+            $resultTime = round($timeNow, $timePrecision) . ' Sec';
+        }
+
+        $arTrace = self::getTrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $inFile = self::getCalledFile($arTrace);
+        if(isset($resultMemory) || isset($resultTime)){
+            $result[$inFile][] = [
+                'memory' => $resultMemory,
+                'time' => $resultTime
+            ];
+        }
+
+        if(self::$exStartTime === null) {
+            self::$exStartTime = microtime(true);
+        }
+
+        if(self::$exStartMemory === null) {
+            self::$exStartMemory = memory_get_usage();
+        }
+
+        return $result;
     }
 
 
@@ -526,7 +573,7 @@ class Dump
                 document.addEventListener("DOMContentLoaded", dumpInit);
             }());
         </script>
-        <?
+        <?php
     }
 
     /**
@@ -644,7 +691,7 @@ class Dump
                 line-height: 22px;
             }
         </style>
-        <?
+        <?php
     }
 
     //helpers
@@ -727,12 +774,22 @@ class JsonData
         $privateLabel = '__protProp';
 
     public static function prepare($data){
-        return json_encode( self::prepareData($data) );
+        return json_encode( self::prepareData( self::replaceRecursion($data) ) );
+    }
+
+    private static function replaceRecursion($value)
+    {
+        $printed = print_r($value, true);
+        if(!empty(preg_match_all('@\*RECURSION\*@', $printed))){
+            $result = preg_replace('/r:[0-9]+/', 's:11:"*RECURSION*"', serialize($value));
+            return unserialize($result);
+        }
+
+        return $value;
     }
 
     private static function prepareData($data)
     {
-        //var_dump($data);die();
         $type = self::getType($data);
         $result = self::createType($type);
 
